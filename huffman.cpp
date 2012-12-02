@@ -1,5 +1,6 @@
 #include <vector>
 #include <queue>
+#include <algorithm>
 #include <assert.h>
 #include <iostream>
 #include "definitions.h"
@@ -177,7 +178,7 @@ byte getBitWithNumber(const vector<byte> & in, int index)
 void HuffmanDecode(const vector<byte> & in, int blockSize, vector<byte> & out, const vector<byte> & codesLengths)
 {
 	assert(codesLengths.size() == alphabet);
-	assert(out.size() == blockSize);
+	assert((int)out.size() == blockSize);
 
 	byte L = 0;
 	vector<byte> T(alphabet);
