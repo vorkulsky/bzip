@@ -1,7 +1,7 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
-#include <sys\stat.h>
+#include <sys/stat.h>
 #include "definitions.h"
 #include "bzip.h"
 using namespace std;
@@ -24,7 +24,7 @@ int main()
 	vector<byte> block(fileSize);
 	for (int i = 0; i<blockSize; ++i)
 	{
-		block[i] = byte(bufFile[i]);
+		block[i] = (byte)bufFile[i];
 	}
 	delete [] bufFile;
 
