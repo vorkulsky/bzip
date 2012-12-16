@@ -138,7 +138,6 @@ void getHuffmanEncodedBlock(vector<byte> & encoded_block, const vector<byte> & c
 		for (int j=codesLengths[block[i]]; j>0; --j)
 		{
 			int f = canonnicalCodes[block[i]]>>(j-1) & 1;
-			//cout<<f<<' ';
 			tmp = tmp | f<<pos;
 			if (pos == 0)
 			{
@@ -147,7 +146,6 @@ void getHuffmanEncodedBlock(vector<byte> & encoded_block, const vector<byte> & c
 				tmp = 0;
 			}
 			else --pos;
-			//encoded_block.push_back((canonnicalCodes[block[i]]>>(j-1) & 1) == 1);
 		}
 	if (pos!=7)
 		encoded_block.push_back(tmp);
@@ -201,10 +199,6 @@ void HuffmanDecode(const vector<byte> & in, int blockSize, vector<byte> & out, c
 		symb[i]=(byte)i;
 	Pred p(codesLengths);
 	stable_sort(symb.begin(), symb.end(), p);
-	vector<byte> test(1);
-	test[0] = 188;
-	//for (int i =0; i< 8; i++)
-	//	cout<<(int)getBitWithNumber(test, i)<<' ';
 	int i = 0;
 	int j = 0;
 	while (j < blockSize)
@@ -218,7 +212,6 @@ void HuffmanDecode(const vector<byte> & in, int blockSize, vector<byte> & out, c
 			++length;
 		}
 		out[j] = symb[offs[length] + code - base[length]];
-		//cout<<(int)out[j]<<' ';
 		++j;
 	}
 }
