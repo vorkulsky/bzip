@@ -50,6 +50,7 @@ void suffixArrayBuild(const vector<byte> & in, vector<int> & p)
 
 	vector<int> pn(size);
 	vector<int> cn(size);
+	vector<int> dd(size);
 	for (int h=0; (int)((size_t)1<<h)<size; ++h)
 	{
 		for (int i=0; i<size; ++i)
@@ -58,14 +59,47 @@ void suffixArrayBuild(const vector<byte> & in, vector<int> & p)
 			if (pn[i] < 0)  pn[i] += size;
 		}
 		cnt.assign(classes, 0);
+		/*
+			for (int i=0; i<size; ++i)
+				++cnt[c[pn[i]]];
+			Этот код эквивалентен следующему.
+			Он заменен для уменьшения количества кэш промахов.
+		*/
 		for (int i=0; i<size; ++i)
-			++cnt[c[pn[i]]];
+			dd[i] = c[pn[i]];
+		for (int i=0; i<size; ++i)
+			++cnt[dd[i]];
+		//	Конец эквивалентного кода.
 		for (int i=1; i<classes; ++i)
 			cnt[i] += cnt[i-1];
+		/*
+			for (int i=size-1; i>=0; --i)
+				p[--cnt[c[pn[i]]]] = pn[i];
+			Этот код эквивалентен следующему.
+			Он заменен для уменьшения количества кэш промахов.
+		*/
 		for (int i=size-1; i>=0; --i)
-			p[--cnt[c[pn[i]]]] = pn[i];
+			dd[i] = c[pn[i]];
+		for (int i=size-1; i>=0; --i)
+			dd[i] = --cnt[dd[i]];
+		for (int i=size-1; i>=0; --i)
+			p[dd[i]] = pn[i];
+		//	Конец эквивалентного кода
 		cn[p[0]] = 0;
 		classes = 1;
+		/*
+			for (int i=1; i<size; ++i)
+				dd[i] = c[p[i]];
+			for (int i=1; i<size; ++i)
+			{
+				int mid1 = (p[i] + ((size_t)1<<h)) % size,  mid2 = (p[i-1] + ((size_t)1<<h)) % size;
+				if (dd[i-1] != dd[i] || c[mid1] != c[mid2])
+					++classes;
+				cn[p[i]] = classes-1;
+			}
+			Непонятно почему этот код не эквивалентен следующему.
+			Он предназначен для уменьшения количества кэш промахов в коде ниже.
+		*/
 		for (int i=1; i<size; ++i)
 		{
 			int mid1 = (p[i] + ((size_t)1<<h)) % size,  mid2 = (p[i-1] + ((size_t)1<<h)) % size;
@@ -73,6 +107,7 @@ void suffixArrayBuild(const vector<byte> & in, vector<int> & p)
 				++classes;
 			cn[p[i]] = classes-1;
 		}
+		//	Конец не понятно почему неэквивалентного кода.
 		c.assign(cn.begin(), cn.end());
 	}
 }
