@@ -1,6 +1,5 @@
 #include <vector>
 #include <list>
-#include <algorithm>
 #include "definitions.h"
 using namespace std;
 
@@ -34,8 +33,12 @@ void MTFEncode(vector<byte> & block)
 	for (size_t i=0; i<size; ++i)
 	{
 		current_byte = block[i];
-		list<byte>::iterator pos = find(encoding.begin(), encoding.end(), current_byte);
-		block[i] = (byte)distance(encoding.begin(), pos);
+		list<byte>::iterator pos = encoding.begin();
+		byte counter = 0;
+		for (; ;++pos, ++counter)
+			if (*pos == current_byte)
+				break;
+		block[i] = counter;
 		encoding.erase(pos);
 		encoding.push_front(current_byte);
 	}
