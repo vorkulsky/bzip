@@ -2,6 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include <sys/stat.h>
+#include <string.h>
 #include "definitions.h"
 #include "bzip.h"
 using namespace std;
@@ -111,17 +112,6 @@ void decode(char* inFileName, char* outFileName)
 	in.close();
 }
 
-int main(int argc, char *argv[])
-{
-	if (argc!=4) return 1;
-	if (!strcmp(argv[1], "-c"))
-		encode(argv[2], argv[3]);
-	else if (!strcmp(argv[1], "-d"))
-		decode(argv[2], argv[3]);
-	else return 1;
-	return 0;
-}
-
 void help()
 {
 	cout
@@ -129,6 +119,25 @@ void help()
 	<<"       bzip -d infile outfile"<<endl
 	<<endl
 	<<"positional arguments:"<<endl
-	<<"-c     compress file"<<endl
+	<<"-e     compress file"<<endl
 	<<"-d     decompress file"<<endl;
+}
+
+int main(int argc, char *argv[])
+{
+	if (argc!=4)
+	{
+		help();
+		return 1;
+	}
+	if (!strcmp(argv[1], "-e"))
+		encode(argv[2], argv[3]);
+	else if (!strcmp(argv[1], "-d"))
+		decode(argv[2], argv[3]);
+	else
+	{
+		help();
+		return 1;
+	}
+	return 0;
 }
