@@ -39,14 +39,14 @@ void encode(char* inFileName, char* outFileName)
 
 		vector<byte> HuffmanEncodedBlock;
 		int lastBytePosition;
-		vector<byte> codesLengths(alphabet);
+		vector<byte> codesLengths(ALPHABET);
 		BZIPEncode(block, HuffmanEncodedBlock, lastBytePosition, codesLengths);
 		int encodedBlockSize = (int)HuffmanEncodedBlock.size();
 
 		out.write((char*)&encodedBlockSize, sizeof encodedBlockSize);
 		out.write((char*)&blockSize, sizeof blockSize);
 		out.write((char*)&lastBytePosition, sizeof lastBytePosition);
-		for(int i=0; i<alphabet; ++i)
+		for(int i=0; i<ALPHABET; ++i)
 		{
 			out.write((char*)&(codesLengths[i]), sizeof codesLengths[i]);
 		}
@@ -77,9 +77,9 @@ void decode(char* inFileName, char* outFileName)
 			in.read((char*)&(encodedBlockSize), sizeof encodedBlockSize);
 			in.read((char*)&(blockSize), sizeof blockSize);
 			in.read((char*)&(lastBytePosition), sizeof lastBytePosition);
-			vector<byte> codesLengths(alphabet);
+			vector<byte> codesLengths(ALPHABET);
 			byte codeLength;
-			for (int i=0; i<alphabet; ++i)
+			for (int i=0; i<ALPHABET; ++i)
 			{
 				in.read((char*)&(codeLength), sizeof codeLength);
 				codesLengths[i] = codeLength;
@@ -101,7 +101,7 @@ void decode(char* inFileName, char* outFileName)
 			}
 
 			fileSize -= encodedBlockSize + sizeof encodedBlockSize + sizeof blockSize +
-						sizeof lastBytePosition + alphabet*(sizeof codeLength);
+						sizeof lastBytePosition + ALPHABET*(sizeof codeLength);
 		}
 	}
 	catch(...)

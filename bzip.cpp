@@ -22,7 +22,7 @@ void BZIPDecode(const vector<byte> & in, vector<byte> & out, int lastBytePositio
 	int blockSize = (int)out.size();
 
 	vector<byte> HuffmanDecodedBlock(blockSize);
-	HuffmanDecode(in, blockSize, HuffmanDecodedBlock, codesLengths);
+	HuffmanDecode(in, HuffmanDecodedBlock, codesLengths);
 
 	MTFDecode(HuffmanDecodedBlock);
 

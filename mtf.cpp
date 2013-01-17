@@ -6,7 +6,7 @@ using namespace std;
 void MTFDecode(vector<byte> & block)
 {
 	size_t size = block.size();
-	list<byte> encoding(alphabet);
+	list<byte> encoding(ALPHABET);
 	byte counter = 0;
 	for (list<byte>::iterator it = encoding.begin(), end = encoding.end(); it != end; ++it, ++counter)
 		*it = counter;
@@ -25,7 +25,7 @@ void MTFDecode(vector<byte> & block)
 void MTFEncode(vector<byte> & block)
 {
 	size_t size = block.size();
-	list<byte> encoding(alphabet);
+	list<byte> encoding(ALPHABET);
 	byte counter = 0;
 	for (list<byte>::iterator it = encoding.begin(), end = encoding.end(); it != end; ++it, ++counter)
 		*it = counter;

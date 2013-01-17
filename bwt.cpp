@@ -39,11 +39,11 @@ void BWTDecode(const vector<byte> & in, vector<byte> & out, int lastBytePosition
 	//	c[] для каждой буквы алфавита содержит количество раз,
 	//	которое она встречается в тексте.
 	//	Требуется инициализация нулями.
-	vector<int> c(alphabet);
+	vector<int> c(ALPHABET);
 	//	d[] для каждой буквы алфавита содержит количество раз,
 	//	которое встречаются все меньшие ее буквы.
 	//	Требуется инициализация 0-го элемента нулем.
-	vector<int> d(alphabet);
+	vector<int> d(ALPHABET);
 	//	p[] для каждого символа текста in содержит количество раз,
 	//	которое этот символ встречается раньше по тексту.
 	vector<int> p(size);
@@ -51,7 +51,7 @@ void BWTDecode(const vector<byte> & in, vector<byte> & out, int lastBytePosition
 	//	Заполняем с[], d[], и p[].
 	for (int i=0; i<size; ++i)
 		p[i] = c[in[i]]++;
-	for (int i=1; i<alphabet; ++i)
+	for (int i=1; i<ALPHABET; ++i)
 		d[i] = d[i-1] + c[i-1];
 
 	//	t[] - вектор перестановки.
@@ -149,7 +149,7 @@ int suffixArrayBuild_firstStep(const vector<byte> & in, vector<int> & permutatio
 	return classes;
 }
 
-/*
+/**
 *	Подсчетом вычисляет такую перестановку permutation символов строки in,
 *	после которой символы окажутся расставлены в алфавитном порядке. Сортировка может быть нестабильной.
 */
@@ -161,17 +161,17 @@ void countingSortPermutation(const vector<byte> & in , vector<int> & permutation
 
 	//	сount[] массив подсчета одинаковых элементов при сортировке подсчетом.
 	//	Требуется инициализация 0-го элемента нулем.
-	vector<int> count(max(size, alphabet));
+	vector<int> count(max(size, ALPHABET));
 
 	for (int i=0; i<size; ++i)
 		++count[in[i]];
-	for (int i=1; i<alphabet; ++i)
+	for (int i=1; i<ALPHABET; ++i)
 		count[i] += count[i-1];
 	for (int i=0; i<size; ++i)
 		permutation[--count[in[i]]] = i;
 }
 
-/*
+/**
 *	Подсчетом вычисляет такую перестановку по первым элементам пар permutation
 *	перестановки pn по вторым элементам пар, после которой пары окажутся расставлены в алфавитном порядке.
 *	Сортировка стабильна.
@@ -183,7 +183,7 @@ void countingSortPermutationOnSecondElementsOfPairs(const vector<int> & pn, vect
 
 	//	сount[] массив подсчета одинаковых (по классу эквивалентности classesNumbers)
 	//	элементов при сортировке подсчетом. Требуется инициализация 0-го элемента нулем.
-	vector<int> count(max(size, alphabet));
+	vector<int> count(max(size, ALPHABET));
 	//	missKiller[] временный массив. Введен для порьбы с кеш промахами.
 	vector<int> missKiller(size);
 	
