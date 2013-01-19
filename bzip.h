@@ -3,10 +3,9 @@
 #define bzip
 
 #include "definitions.h"
-#include <vector>
 using namespace std;
 
-void BZIPEncode(const vector<byte> & in, vector<byte> & out, int & lastBytePosition, vector<byte> & codesLengths);
-void BZIPDecode(const vector<byte> & in, vector<byte> & out, int lastBytePosition, const vector<byte> & codesLengths);
+byte* BZIPEncode(const byte* in, int inSize, int& outSize, int & lastBytePosition, byte* codesLengths);
+void BZIPDecode(const byte* in, int inSize, byte* out, int outSize, int lastBytePosition, const byte* codesLengths);
 
 #endif
