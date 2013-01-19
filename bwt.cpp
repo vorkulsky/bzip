@@ -130,7 +130,8 @@ void suffixArrayBuild(const vector<byte> & in, vector<int> & permutation)
 int suffixArrayBuild_firstStep(const vector<byte> & in, vector<int> & permutation,
 	vector<int> & classesNumbers)
 {
-	assert(in.size() == p.size() == c.size());
+	assert(in.size() == permutation.size());
+	assert(permutation.size() == classesNumbers.size());
 
 	int size = (int)in.size();
 
