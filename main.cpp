@@ -1,6 +1,5 @@
 #include <vector>
-#include <iostream>
-#include <fstream>
+#include "stdio.h"
 #include <sys/stat.h>
 #include <string.h>
 #include "definitions.h"
@@ -12,29 +11,28 @@ void encode(char* inFileName, char* outFileName)
 	struct stat st;
 	if (stat(inFileName, &st)!=0)
 	{
-		cerr<<"File not found: "<<inFileName<<endl;
-		return;
+		fprintf(stderr, "File not found: %s\n", inFileName);
+		exit(1);
 	}
 	long fileSize = st.st_size;
-	ifstream in(inFileName, ifstream::binary|ifstream::in);
+	FILE * in;
+	fopen_s(&in, inFileName, "rb");
+	//FILE * in = fopen(inFileName, "rb");
 	int blockSize = 50000;
 	int d = fileSize % blockSize;
 	if (d < blockSize / 2 && fileSize > blockSize)
-		blockSize += d / (int)(fileSize / (double)blockSize)+1;
-	ofstream out(outFileName, ifstream::binary|ifstream::out);
+		blockSize += d / (int)(fileSize / (double)blockSize) + 1;
+	FILE * out;
+	fopen_s(&out, outFileName, "wb");
+	//FILE * out = fopen(outFileName, "wb");
 	while(fileSize)
 	{
 		if (fileSize < blockSize)
 			blockSize = fileSize;
 		fileSize -= blockSize;
-		char * bufFile = new char[blockSize];
-		in.read(bufFile, blockSize);
-	
-		vector<byte> block(blockSize);
-		for (int i = 0; i<blockSize; ++i)
-		{
-			block[i] = (byte)bufFile[i];
-		}
+		byte * bufFile = new byte[blockSize];
+		fread(bufFile, sizeof bufFile[0], blockSize, in);
+		vector<byte> block(bufFile, bufFile + blockSize);
 		delete [] bufFile;
 
 		vector<byte> HuffmanEncodedBlock;
@@ -43,20 +41,20 @@ void encode(char* inFileName, char* outFileName)
 		BZIPEncode(block, HuffmanEncodedBlock, lastBytePosition, codesLengths);
 		int encodedBlockSize = (int)HuffmanEncodedBlock.size();
 
-		out.write((char*)&encodedBlockSize, sizeof encodedBlockSize);
-		out.write((char*)&blockSize, sizeof blockSize);
-		out.write((char*)&lastBytePosition, sizeof lastBytePosition);
+		fwrite(&encodedBlockSize, sizeof encodedBlockSize, 1, out);
+		fwrite(&blockSize, sizeof blockSize, 1, out);
+		fwrite(&lastBytePosition, sizeof lastBytePosition, 1, out);
 		for(int i=0; i<ALPHABET; ++i)
 		{
-			out.write((char*)&(codesLengths[i]), sizeof codesLengths[i]);
+			fwrite(&(codesLengths[i]), sizeof codesLengths[i], 1, out);
 		}
 		for(int i=0; i<encodedBlockSize; ++i)
 		{
-			out.write((char*)&(HuffmanEncodedBlock[i]), sizeof HuffmanEncodedBlock[i]);
+			fwrite(&(HuffmanEncodedBlock[i]), sizeof HuffmanEncodedBlock[i], 1, out);
 		}
 	}
-	out.close();
-	in.close();
+	fclose(out);
+	fclose(in);
 }
 
 void decode(char* inFileName, char* outFileName)
@@ -64,40 +62,46 @@ void decode(char* inFileName, char* outFileName)
 	struct stat st;
 	if (stat(inFileName, &st)!=0)
 	{
-		cerr<<"File not found: "<<inFileName<<endl;
-		return;
+		fprintf(stderr, "File not found: %s\n", inFileName);
+		exit(1);
 	}
 	long fileSize = st.st_size;
-	ifstream in(inFileName, ifstream::binary|ifstream::in);
-	ofstream out(outFileName, ifstream::binary|ifstream::out);
+	FILE * in;
+	fopen_s(&in, inFileName, "rb");
+	//FILE * in = fopen(inFileName, "rb");
+	FILE * out;
+	fopen_s(&out, outFileName, "wb");
+	//FILE * out = fopen(outFileName, "wb");
 	try {
 		while(fileSize)
 		{
 			int encodedBlockSize, blockSize, lastBytePosition;
-			in.read((char*)&(encodedBlockSize), sizeof encodedBlockSize);
-			in.read((char*)&(blockSize), sizeof blockSize);
-			in.read((char*)&(lastBytePosition), sizeof lastBytePosition);
+			fread(&encodedBlockSize, sizeof encodedBlockSize, 1, in);
+			fread(&blockSize, sizeof blockSize, 1, in);
+			fread(&lastBytePosition, sizeof lastBytePosition, 1, in);
 			vector<byte> codesLengths(ALPHABET);
-			byte codeLength;
+			byte codeLength = 0;
+			byte codesLengthsarr[ALPHABET];
+			fread(codesLengthsarr, sizeof codeLength, ALPHABET, in);
 			for (int i=0; i<ALPHABET; ++i)
 			{
-				in.read((char*)&(codeLength), sizeof codeLength);
-				codesLengths[i] = codeLength;
+				codesLengths[i] = codesLengthsarr[i];
 			}
 			vector<byte> HuffmanEncodedBlock(encodedBlockSize);
 			byte encodedByte;
+			byte* HuffmanEncodedBlockarr = new byte[encodedBlockSize];
+			fread(HuffmanEncodedBlockarr, sizeof encodedByte, encodedBlockSize, in);
 			for (int i=0; i<encodedBlockSize; ++i)
 			{
-				in.read((char*)&(encodedByte), sizeof encodedByte);
-				HuffmanEncodedBlock[i] = encodedByte;
+				HuffmanEncodedBlock[i] = HuffmanEncodedBlockarr[i];
 			}
-
+			delete [] HuffmanEncodedBlockarr;
 			vector<byte> block(blockSize);
 			BZIPDecode(HuffmanEncodedBlock, block, lastBytePosition, codesLengths);
 
 			for(int i=0; i<blockSize; ++i)
 			{
-				out.write((char*)&(block[i]), sizeof block[i]);
+				fwrite(&(block[i]), sizeof block[i], 1, out);
 			}
 
 			fileSize -= encodedBlockSize + sizeof encodedBlockSize + sizeof blockSize +
@@ -106,21 +110,20 @@ void decode(char* inFileName, char* outFileName)
 	}
 	catch(...)
 	{
-		cerr<<"The archive is damaged"<<endl;
+		fputs("The archive is damaged", stderr);
 	}
-	out.close();
-	in.close();
+	fclose(out);
+	fclose(in);
 }
 
 void help()
 {
-	cout
-	<<"usage: bzip -e infile outfile"<<endl
-	<<"       bzip -d infile outfile"<<endl
-	<<endl
-	<<"positional arguments:"<<endl
-	<<"-e     compress file"<<endl
-	<<"-d     decompress file"<<endl;
+	puts("usage: bzip -e infile outfile");
+	puts("       bzip -d infile outfile");
+	puts("");
+	puts("positional arguments:");
+	puts("-e     compress file");
+	puts("-d     decompress file");
 }
 
 int main(int argc, char *argv[])
