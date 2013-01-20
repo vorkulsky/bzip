@@ -140,7 +140,8 @@ void removeHuffmanTree(HuffmanTreeNode* p)
 void getCanonnicalCodes(const vector<byte> & codesLengths, vector<byte> & canonnicalCodes)
 {
 	byte L = 0;
-	vector<byte> T(ALPHABET);
+	// !!!Важно: T хранит числа до 256 включительно, поэтому int.
+	vector<int> T(ALPHABET);
 	for (int i=0; i<ALPHABET; ++i)
 	{
 		++T[codesLengths[i]];
@@ -199,7 +200,8 @@ void HuffmanDecode(const vector<byte> & in, vector<byte> & out, const vector<byt
 	// greatestCodeLength - наибольшая длина кода.
 	byte greatestCodeLength = 0;
 	// numberOfCharactersWithCodeLength[i] - количество символов алфавита, имеющих длину кода, равную i.
-	vector<byte> numberOfCharactersWithCodeLength(ALPHABET);
+	// !!!Важно: хранит числа до 256 включительно, поэтому int.
+	vector<int> numberOfCharactersWithCodeLength(ALPHABET);
 	for (int i=0; i<ALPHABET; ++i)
 	{
 		++numberOfCharactersWithCodeLength[codesLengths[i]];
