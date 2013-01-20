@@ -6,25 +6,49 @@
 #include "bzip.h"
 using namespace std;
 
+void encode(char* inFileName, char* outFileName);
+void decode(char* inFileName, char* outFileName);
+void fileNotFoundError(char* fileName);
+void fileNotOpenedError(char* fileName);
+void identicalAddressesError(char* fileName1, char* fileName2);
+void help();
+
+int main(int argc, char *argv[])
+{
+	if (argc!=4)
+		help();
+	if (!strcmp(argv[1], "-e"))
+		encode(argv[2], argv[3]);
+	else if (!strcmp(argv[1], "-d"))
+		decode(argv[2], argv[3]);
+	else
+		help();
+	return 0;
+}
+
 void encode(char* inFileName, char* outFileName)
 {
+	if (!strcmp(inFileName, outFileName))
+		identicalAddressesError(inFileName, outFileName);
 	struct stat st;
 	if (stat(inFileName, &st)!=0)
-	{
-		fprintf(stderr, "File not found: %s\n", inFileName);
-		exit(1);
-	}
+		fileNotFoundError(inFileName);
 	long fileSize = st.st_size;
-	FILE* in;
-	fopen_s(&in, inFileName, "rb");
-	//FILE* in = fopen(inFileName, "rb");
+	FILE* in = fopen(inFileName, "rb");
+	if (!in)
+		fileNotOpenedError(inFileName);
+	FILE* out = fopen(outFileName, "wb");
+	if (!in)
+	{
+		fclose(in);
+		fileNotOpenedError(inFileName);
+	}
+
 	int blockSize = 50000;
 	int d = fileSize % blockSize;
 	if (d < blockSize / 2 && fileSize > blockSize)
 		blockSize += d / (int)(fileSize / (double)blockSize) + 1;
-	FILE* out;
-	fopen_s(&out, outFileName, "wb");
-	//FILE* out = fopen(outFileName, "wb");
+
 	while(fileSize)
 	{
 		if (fileSize < blockSize)
@@ -55,19 +79,21 @@ void encode(char* inFileName, char* outFileName)
 
 void decode(char* inFileName, char* outFileName)
 {
+	if (!strcmp(inFileName, outFileName))
+		identicalAddressesError(inFileName, outFileName);
 	struct stat st;
 	if (stat(inFileName, &st)!=0)
-	{
-		fprintf(stderr, "File not found: %s\n", inFileName);
-		exit(1);
-	}
+		fileNotFoundError(inFileName);
 	long fileSize = st.st_size;
-	FILE* in;
-	fopen_s(&in, inFileName, "rb");
-	//FILE* in = fopen(inFileName, "rb");
-	FILE* out;
-	fopen_s(&out, outFileName, "wb");
-	//FILE* out = fopen(outFileName, "wb");
+	FILE* in = fopen(inFileName, "rb");
+	if (!in)
+		fileNotOpenedError(inFileName);
+	FILE* out = fopen(outFileName, "wb");
+	if (!in)
+	{
+		fclose(in);
+		fileNotOpenedError(inFileName);
+	}
 	try {
 		while(fileSize)
 		{
@@ -97,7 +123,7 @@ void decode(char* inFileName, char* outFileName)
 	}
 	catch(...)
 	{
-		fputs("The archive is damaged", stderr);
+		fputs("The archive is damaged\n", stderr);
 	}
 	fclose(out);
 	fclose(in);
@@ -114,15 +140,20 @@ void help()
 	exit(0);
 }
 
-int main(int argc, char *argv[])
+void fileNotFoundError(char* fileName)
 {
-	if (argc!=4)
-		help();
-	if (!strcmp(argv[1], "-e"))
-		encode(argv[2], argv[3]);
-	else if (!strcmp(argv[1], "-d"))
-		decode(argv[2], argv[3]);
-	else
-		help();
-	return 0;
+	fprintf(stderr, "File not found: %s\n", fileName);
+	exit(1);
+}
+
+void fileNotOpenedError(char* fileName)
+{
+	fprintf(stderr, "File not opened: %s\n", fileName);
+	exit(1);
+}
+
+void identicalAddressesError(char* fileName1, char* fileName2)
+{
+	fprintf(stderr, "Addresses of files are identical: %s, %s\n", fileName1, fileName2);
+	exit(1);
 }
