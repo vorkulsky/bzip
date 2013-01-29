@@ -1,21 +1,17 @@
-#include <vector>
 #include <algorithm>
-#include <assert.h>
 #include "definitions.h"
 using namespace std;
 
-void suffixArrayBuild(const vector<byte> &, vector<int> &);
-int suffixArrayBuild_firstStep(const vector<byte> &, vector<int> &, vector<int> &);
-void countingSortPermutation(const vector<byte> &, vector<int> &);
-void countingSortPermutationOnSecondElementsOfPairs(const vector<int> &, vector<int> &, const vector<int> &, int);
+void suffixArrayBuild(const byte* in, int* permutation, int size);
+int suffixArrayBuild_firstStep(const byte* in, int size, int* permutation, int* classesNumbers);
+void countingSortPermutation(const byte* in, int size, int* permutation);
+void countingSortPermutationOnSecondElementsOfPairs(const int* pn, int size, int* permutation,
+													const int* classesNumbers, int classes);
 
-int BWTEncode(const vector<byte> & in, vector<byte> & out)
+int BWTEncode(const byte* in, byte* out, int size)
 {
-	assert(in.size() == out.size());
-
-	int size = (int)in.size();
-	vector<int> suffix_array(size);
-	suffixArrayBuild(in, suffix_array);
+	int* suffix_array = new int[size];
+	suffixArrayBuild(in, suffix_array, size);
 	int lastBytePosition = 0;
 	for (int i=0; i<size; ++i)
 	{
@@ -27,26 +23,25 @@ int BWTEncode(const vector<byte> & in, vector<byte> & out)
 			lastBytePosition = i;
 		}
 	}
+	delete [] suffix_array;
 	return lastBytePosition;
 }
 
-void BWTDecode(const vector<byte> & in, vector<byte> & out, int lastBytePosition)
+void BWTDecode(const byte* in, byte* out, int size, int lastBytePosition)
 {
-	assert(in.size() == out.size());
-
-	int size = (int)in.size();
-
 	//	c[] для каждой буквы алфавита содержит количество раз,
 	//	которое она встречается в тексте.
 	//	Требуется инициализация нулями.
-	vector<int> c(ALPHABET);
+	int c[ALPHABET];
+	memset(c, 0, ALPHABET * sizeof(int));
 	//	d[] для каждой буквы алфавита содержит количество раз,
 	//	которое встречаются все меньшие ее буквы.
 	//	Требуется инициализация 0-го элемента нулем.
-	vector<int> d(ALPHABET);
+	int d[ALPHABET];
+	memset(d, 0, ALPHABET * sizeof(int));
 	//	p[] для каждого символа текста in содержит количество раз,
 	//	которое этот символ встречается раньше по тексту.
-	vector<int> p(size);
+	int* p = new int[size];
 
 	//	Заполняем с[], d[], и p[].
 	for (int i=0; i<size; ++i)
@@ -55,9 +50,11 @@ void BWTDecode(const vector<byte> & in, vector<byte> & out, int lastBytePosition
 		d[i] = d[i-1] + c[i-1];
 
 	//	t[] - вектор перестановки.
-	vector<int> t(size);
+	int* t = new int[size];
 	for (int i=0; i<size; ++i)
 		t[i] = d[in[i]] + p[i];
+
+	delete [] p;
 
 	//	Используя вектор перестановки, вычисляем все буквы текста от начала к концу.
 	for (int i=size-1; i>=0; --i)
@@ -65,28 +62,25 @@ void BWTDecode(const vector<byte> & in, vector<byte> & out, int lastBytePosition
 		out[i] = in[lastBytePosition];
 		lastBytePosition = t[lastBytePosition];
 	}
+	delete [] t;
 }
 
 /**
 *	Строит суффиксный массив permutation текста in алгоритмом O(NlogN)
 *	(применяя видоизмененную поразрядную сортировку к циклическим сдвигам)
 */
-void suffixArrayBuild(const vector<byte> & in, vector<int> & permutation)
+void suffixArrayBuild(const byte* in, int* permutation, int size)
 {
-	assert(in.size() == permutation.size());
-
-	int size = (int)in.size(); 
-
 	//	classesNumbers[i] для каждой циклической подстроки, начинающейся в позиции i с длиной 2^h,
 	//	содержит номер класса эквивалентности, которому эта подстрока принадлежит.
-	vector<int> classesNumbers(size);
+	int* classesNumbers = new int[size];
 
-	int classes = suffixArrayBuild_firstStep(in, permutation, classesNumbers);
+	int classes = suffixArrayBuild_firstStep(in, size, permutation, classesNumbers);
 
 	//	pn[] содержит перестановку по вторым элементам пар.
-	vector<int> pn(size);
+	int* pn = new int[size];
 	//	newClassesNumbers[] содержит номера новых классов эквивалентности.
-	vector<int> newClassesNumbers(size);
+	int* newClassesNumbers = new int[size];
 
 	for (int h=0; (1<<h)<size; ++h)
 	{
@@ -99,7 +93,7 @@ void suffixArrayBuild(const vector<byte> & in, vector<int> & permutation)
 		}
 
 		//	Стабильная сортировка подсчетом по первым элементам пар.
-		countingSortPermutationOnSecondElementsOfPairs(pn, permutation, classesNumbers, classes);
+		countingSortPermutationOnSecondElementsOfPairs(pn, size, permutation, classesNumbers, classes);
 
 		//	Проходом по вектору перестановки permutation, сравненивая соседние элементы как пары двух чисел,
 		//	строим вектор номеров новых классов эквивалентности newClassesNumbers.
@@ -114,8 +108,12 @@ void suffixArrayBuild(const vector<byte> & in, vector<int> & permutation)
 					++classes;
 			newClassesNumbers[permutation[i]] = classes-1;
 		}
-		classesNumbers.assign(newClassesNumbers.begin(), newClassesNumbers.end());
+		memcpy(classesNumbers, newClassesNumbers, size * sizeof(int));
 	}
+
+	delete [] newClassesNumbers;
+	delete [] pn;
+	delete [] classesNumbers;
 }
 
 /**
@@ -127,15 +125,9 @@ void suffixArrayBuild(const vector<byte> & in, vector<int> & permutation)
 *	что и строка in. Заполняет вектора permutation и classesNumbers.
 *	Возвращает количество классов эквивалентности.
 */
-int suffixArrayBuild_firstStep(const vector<byte> & in, vector<int> & permutation,
-	vector<int> & classesNumbers)
+int suffixArrayBuild_firstStep(const byte* in, int size, int* permutation, int* classesNumbers)
 {
-	assert(in.size() == permutation.size());
-	assert(permutation.size() == classesNumbers.size());
-
-	int size = (int)in.size();
-
-	countingSortPermutation(in, permutation);
+	countingSortPermutation(in, size, permutation);
 
 	//	Проходом по вектору перестановки permutation, сравненивая соседние символы,
 	//	строим вектор номеров классов эквивалентности classesNumbers.
@@ -154,15 +146,12 @@ int suffixArrayBuild_firstStep(const vector<byte> & in, vector<int> & permutatio
 *	Подсчетом вычисляет такую перестановку permutation символов строки in,
 *	после которой символы окажутся расставлены в алфавитном порядке. Сортировка может быть нестабильной.
 */
-void countingSortPermutation(const vector<byte> & in , vector<int> & permutation)
+void countingSortPermutation(const byte* in, int size, int* permutation)
 {
-	assert(in.size() == permutation.size());
-
-	int size = (int)in.size();
-
 	//	сount[] массив подсчета одинаковых элементов при сортировке подсчетом.
 	//	Требуется инициализация 0-го элемента нулем.
-	vector<int> count(max(size, ALPHABET));
+	int* count = new int[max(size, ALPHABET)];
+	memset(count, 0, ALPHABET * sizeof(int));
 
 	for (int i=0; i<size; ++i)
 		++count[in[i]];
@@ -170,6 +159,8 @@ void countingSortPermutation(const vector<byte> & in , vector<int> & permutation
 		count[i] += count[i-1];
 	for (int i=0; i<size; ++i)
 		permutation[--count[in[i]]] = i;
+
+	delete [] count;
 }
 
 /**
@@ -177,16 +168,15 @@ void countingSortPermutation(const vector<byte> & in , vector<int> & permutation
 *	перестановки pn по вторым элементам пар, после которой пары окажутся расставлены в алфавитном порядке.
 *	Сортировка стабильна.
 */
-void countingSortPermutationOnSecondElementsOfPairs(const vector<int> & pn, vector<int> &permutation,
-	const vector<int> & classesNumbers, int classes)
+void countingSortPermutationOnSecondElementsOfPairs(const int* pn, int size, int* permutation,
+													const int* classesNumbers, int classes)
 {
-	int size = (int)pn.size();
-
 	//	сount[] массив подсчета одинаковых (по классу эквивалентности classesNumbers)
 	//	элементов при сортировке подсчетом. Требуется инициализация 0-го элемента нулем.
-	vector<int> count(max(size, ALPHABET));
+	int* count = new int[max(size, ALPHABET)];
+	memset(count, 0, classes * sizeof(int));
 	//	missKiller[] временный массив. Введен для порьбы с кеш промахами.
-	vector<int> missKiller(size);
+	int* missKiller = new int[size];
 	
 	/*
 	*	for (int i=0; i<size; ++i)
@@ -214,4 +204,7 @@ void countingSortPermutationOnSecondElementsOfPairs(const vector<int> & pn, vect
 	for (int i=size-1; i>=0; --i)
 		permutation[missKiller[i]] = pn[i];
 	//	Конец эквивалентного кода.
+
+	delete [] missKiller;
+	delete [] count;
 }

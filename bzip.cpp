@@ -8,17 +8,18 @@ using namespace std;
 
 byte* BZIPEncode(const byte* in, int inSize, int& outSize, int& lastBytePosition, byte* codesLengths)
 {
-	vector<byte> inVector(in, in + inSize);
 	vector<byte> outVector;
 	vector<byte> codesLengthsVector(ALPHABET);
-	vector<byte> BWTMTFEncodedBlock(inSize);
-	lastBytePosition = BWTEncode(inVector, BWTMTFEncodedBlock);
-	MTFEncode(BWTMTFEncodedBlock);
-	HuffmanEncode(BWTMTFEncodedBlock, outVector, codesLengthsVector);
+	byte* BWTMTFEncodedBlock = new byte[inSize];
+	lastBytePosition = BWTEncode(in, BWTMTFEncodedBlock, inSize);
+	vector<byte> BWTMTFEncodedBlockVector(BWTMTFEncodedBlock, BWTMTFEncodedBlock + inSize);
+	MTFEncode(BWTMTFEncodedBlockVector);
+	HuffmanEncode(BWTMTFEncodedBlockVector, outVector, codesLengthsVector);
 	copy(codesLengthsVector.begin(), codesLengthsVector.end(), codesLengths);
 	outSize = (int)outVector.size();
 	byte* out = new byte[outSize];
 	copy(outVector.begin(), outVector.end(), out);
+	delete [] BWTMTFEncodedBlock;
 	return out;
 }
 
@@ -27,9 +28,10 @@ void BZIPDecode(const byte* in, int inSize, byte* out, int outSize, int lastByte
 	vector<byte> inVector(in, in + inSize);
 	vector<byte> outVector(outSize);
 	vector<byte> codesLengthsVector(codesLengths, codesLengths + ALPHABET);
-	vector<byte> HuffmanDecodedBlock(outSize);
-	HuffmanDecode(inVector, HuffmanDecodedBlock, codesLengthsVector);
-	MTFDecode(HuffmanDecodedBlock);
-	BWTDecode(HuffmanDecodedBlock, outVector, lastBytePosition);
-	copy(outVector.begin(), outVector.end(), out);
+	vector<byte> HuffmanDecodedBlockVector(outSize);
+	HuffmanDecode(inVector, HuffmanDecodedBlockVector, codesLengthsVector);
+	MTFDecode(HuffmanDecodedBlockVector);
+	byte* HuffmanDecodedBlock = new byte[outSize];
+	copy(HuffmanDecodedBlockVector.begin(), HuffmanDecodedBlockVector.end(), HuffmanDecodedBlock);
+	BWTDecode(HuffmanDecodedBlock, out, outSize, lastBytePosition);
 }

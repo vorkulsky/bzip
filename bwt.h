@@ -3,10 +3,9 @@
 #define bwt
 
 #include "definitions.h"
-#include <vector>
-using namespace std;
 
-int BWTEncode(const vector<byte> & in, vector<byte> & out);
-void BWTDecode(const vector<byte> & in, vector<byte> & out, int lastBytePosition);
+//Размер in = размер out = size.
+int BWTEncode(const byte* in, byte* out, int size);
+void BWTDecode(const byte* in, byte* out, int size, int lastBytePosition);
 
 #endif
