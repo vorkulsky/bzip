@@ -1,4 +1,4 @@
-.PHONY: build build64 run clean
+.PHONY: build build64 clean
 
 build: main.cpp Makefile
 	g++ -O2 -Wall -c main.cpp bzip.cpp bwt.cpp mtf.cpp huffman.cpp
