@@ -1,17 +1,15 @@
-#include <vector>
 #include <list>
 #include "definitions.h"
 using namespace std;
 
-void MTFDecode(vector<byte> & block)
+void MTFDecode(byte* block, int size)
 {
-	size_t size = block.size();
 	list<byte> encoding(ALPHABET);
 	byte counter = 0;
 	for (list<byte>::iterator it = encoding.begin(), end = encoding.end(); it != end; ++it, ++counter)
 		*it = counter;
 	byte current_byte = 0;
-	for (size_t i=0; i<size; ++i)
+	for (int i=0; i<size; ++i)
 	{
 		current_byte = block[i];
 		list<byte>::iterator it = encoding.begin();
@@ -22,15 +20,14 @@ void MTFDecode(vector<byte> & block)
 	}
 }
 
-void MTFEncode(vector<byte> & block)
+void MTFEncode(byte* block, int size)
 {
-	size_t size = block.size();
 	list<byte> encoding(ALPHABET);
 	byte counter = 0;
 	for (list<byte>::iterator it = encoding.begin(), end = encoding.end(); it != end; ++it, ++counter)
 		*it = counter;
 	byte current_byte = 0;
-	for (size_t i=0; i<size; ++i)
+	for (int i=0; i<size; ++i)
 	{
 		current_byte = block[i];
 		list<byte>::iterator pos = encoding.begin();

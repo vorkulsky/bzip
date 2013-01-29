@@ -3,10 +3,8 @@
 #define mtf
 
 #include "definitions.h"
-#include <vector>
-using namespace std;
 
-void MTFEncode(vector<byte> & block);
-void MTFDecode(vector<byte> & block);
+void MTFDecode(byte* block, int size);
+void MTFEncode(byte* block, int size);
 
 #endif
