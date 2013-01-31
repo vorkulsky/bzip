@@ -3,7 +3,6 @@
 #define bzip
 
 #include "definitions.h"
-using namespace std;
 
 /**
 *	in - заполненный входной массив данных. inSize - его размер.

@@ -3,8 +3,6 @@
 #define huffman
 
 #include "definitions.h"
-#include <vector>
-using namespace std;
 
 /**
 *	В in получает ссылку на заполенный входной массив. inSize - его размер. out - выходной массив,
