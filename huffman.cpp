@@ -18,8 +18,10 @@ void codesLengthsCalculate(HuffmanTreeNode* tree, byte* codesLengths);
 void walkTree(HuffmanTreeNode* p, byte* codesLengths, byte level);
 void removeHuffmanTree(HuffmanTreeNode* p);
 void getCanonnicalCodes(const byte* codesLengths, byte canonnicalCodes[]);
-void getHuffmanEncodedBlock(vector<byte> & encoded_block, const byte* codesLengths,
-							const byte canonnicalCodes[], const byte* block, int size);
+void getSymb(byte symb[], const byte* codesLengths);
+byte getNumberOfCharactersWithCodeLength(int numberOfCharactersWithCodeLength[], const byte* codesLengths);
+byte* getHuffmanEncodedBlock(const byte* in, int inSize, int& outSize,
+							 const byte* codesLengths, const byte canonnicalCodes[]);
 byte getBitWithNumber(const byte* in, int index);
 
 struct greaterNode
@@ -55,11 +57,7 @@ byte* HuffmanEncode(const byte* in, int inSize, int& outSize, byte* codesLengths
 	//	canonnicalCodes[i] - канонический код Хаффмана символа i.
 	byte canonnicalCodes[ALPHABET];
 	getCanonnicalCodes(codesLengths, canonnicalCodes);
-	vector<byte> outVector;
-	getHuffmanEncodedBlock(outVector, codesLengths, canonnicalCodes, in, inSize);
-	outSize = (int)outVector.size();
-	byte* out = new byte[outSize];
-	copy(outVector.begin(), outVector.end(), out);
+	byte* out = getHuffmanEncodedBlock(in, inSize, outSize, codesLengths, canonnicalCodes);
 	return out;
 }
 
@@ -149,65 +147,48 @@ void removeHuffmanTree(HuffmanTreeNode* p)
 */
 void getCanonnicalCodes(const byte* codesLengths, byte canonnicalCodes[])
 {
-	byte L = 0;
+	//	symb[] - перестановка символов алфавита, отсортированная по двум ключам:
+	//	первичный - длина кода, вторичный - лексикографическое значение.
+	byte symb[ALPHABET];
+	getSymb(symb, codesLengths);
+
+	//	numberOfCharactersWithCodeLength[i] - количество символов алфавита, имеющих длину кода, равную i.
 	//	!!!Важно: T хранит числа до 256 включительно, поэтому int.
 	int numberOfCharactersWithCodeLength[ALPHABET];
-	memset(numberOfCharactersWithCodeLength, 0, ALPHABET * sizeof(int));
-	for (int i=0; i<ALPHABET; ++i)
-	{
-		++numberOfCharactersWithCodeLength[codesLengths[i]];
-		if (codesLengths[i] > L) L = codesLengths[i];
-	}
-	byte S[ALPHABET+1]; // Достаточен размер L+1;
-	S[L] = 0;
-	for (int i=L-1; i>0; --i)
+	byte greatestCodeLength = 
+		getNumberOfCharactersWithCodeLength(numberOfCharactersWithCodeLength, codesLengths);
+	
+	//	S[i] - начальное значение кода длины i, для всех i из [1..greatestCodeLength]
+	byte S[ALPHABET];
+	S[greatestCodeLength] = 0;
+	for (int i=greatestCodeLength-1; i>0; --i)
 		S[i] = (S[i+1] + numberOfCharactersWithCodeLength[i+1]) >> 1;
-	byte symb[ALPHABET];
-	for (int i=0; i<ALPHABET; ++i)
-		symb[i]=(byte)i;
-	Pred p(codesLengths);
-	stable_sort(symb, symb + ALPHABET, p);
+
 	for (int i=0; i<ALPHABET && codesLengths[symb[i]]; ++i)
 		canonnicalCodes[symb[i]] = S[codesLengths[symb[i]]]++;
 }
 
-void getHuffmanEncodedBlock(vector<byte> & encoded_block, const byte* codesLengths,
-							const byte canonnicalCodes[], const byte* block, int size)
+/**
+*	Строит перестановку symb символов алфавита, отсортированную по двум ключам:
+*	первичный - длина кода, вторичный - лексикографическое значение.
+*	symb[] должен содержать место под ALPHABET элементов.
+*/
+void getSymb(byte symb[], const byte* codesLengths)
 {
-	int pos = 7;
-	int tmp = 0;
-	for (int i=0; i<size; i++)
-		for (int j=codesLengths[block[i]]; j>0; --j)
-		{
-			int f = canonnicalCodes[block[i]]>>(j-1) & 1;
-			tmp = tmp | f<<pos;
-			if (pos == 0)
-			{
-				encoded_block.push_back(tmp);
-				pos = 7;
-				tmp = 0;
-			}
-			else --pos;
-		}
-		if (pos!=7)
-			encoded_block.push_back(tmp);
-}
-
-void HuffmanDecode(const byte* in, int inSize, byte* out, int blockSize, const byte* codesLengths)
-{
-	//	symb[] - перестановка символов алфавита, отсортированная по двум ключам:
-	//	первичный - длина кода, вторичный - лексикографическое значение.
-	byte symb[ALPHABET];
 	for (int i=0; i<ALPHABET; ++i)
-		symb[i] = (byte)i;
+		symb[i]=(byte)i;
 	Pred p(codesLengths);
 	stable_sort(symb, symb + ALPHABET, p);
+}
 
-	//	greatestCodeLength - наибольшая длина кода.
+/**
+*	Заполняет массив numberOfCharactersWithCodeLength[i] - количество символов алфавита, имеющих длину кода, равную i.
+*	Ворзвращает через return наибольшую длину кода.
+*	numberOfCharactersWithCodeLength[] должен содержать место под ALPHABET элементов.
+*/
+byte getNumberOfCharactersWithCodeLength(int numberOfCharactersWithCodeLength[], const byte* codesLengths)
+{
 	byte greatestCodeLength = 0;
-	//	numberOfCharactersWithCodeLength[i] - количество символов алфавита, имеющих длину кода, равную i.
-	//	!!!Важно: хранит числа до 256 включительно, поэтому int.
-	int numberOfCharactersWithCodeLength[ALPHABET];
 	memset(numberOfCharactersWithCodeLength, 0, ALPHABET * sizeof(int));
 	for (int i=0; i<ALPHABET; ++i)
 	{
@@ -215,6 +196,61 @@ void HuffmanDecode(const byte* in, int inSize, byte* out, int blockSize, const b
 		if (codesLengths[i] > greatestCodeLength)
 			greatestCodeLength = codesLengths[i];
 	}
+	return greatestCodeLength;
+}
+
+/**
+*	Кодирует блок данных in размера inSize каноническими кодами Хаффмана canonnicalCodes[]
+*	длины codesLengths.
+*	Результат - закодированный блок возвращается через return. Размер результата возвращается в outSize.
+*/
+byte* getHuffmanEncodedBlock(const byte* in, int inSize, int& outSize,
+						   const byte* codesLengths, const byte canonnicalCodes[])
+{
+	//	Нельзя заранее знать размер закодированных блока данных. Поэтому используется вектор.
+	//	А потом результат копируется в массив, по размеру равный итоговому размеру вектора.
+	vector<byte> outVector;
+	//	Последовательно вычисляются биты закодированных символов и упаковываются в байты.
+	//	_byte - заполняемый байт.
+	byte _byte = 0;
+	//	pos - текущая позиция в байте.
+	int pos = 7;
+	for (int i=0; i<inSize; i++)
+	{
+		for (int j=codesLengths[in[i]]; j>0; --j)
+		{
+			byte bit = canonnicalCodes[in[i]]>>(j-1) & 1;
+			_byte = _byte | bit<<pos;
+			if (pos == 0)
+			{
+				outVector.push_back(_byte);
+				pos = 7;
+				_byte = 0;
+			}
+			else --pos;
+		}
+	}
+	if (pos!=7)
+		outVector.push_back(_byte);
+
+	outSize = (int)outVector.size();
+	byte* out = new byte[outSize];
+	copy(outVector.begin(), outVector.end(), out);
+	return out;
+}
+
+void HuffmanDecode(const byte* in, int inSize, byte* out, int blockSize, const byte* codesLengths)
+{
+	//	symb[] - перестановка символов алфавита, отсортированная по двум ключам:
+	//	первичный - длина кода, вторичный - лексикографическое значение.
+	byte symb[ALPHABET];
+	getSymb(symb, codesLengths);
+
+	//	numberOfCharactersWithCodeLength[i] - количество символов алфавита, имеющих длину кода, равную i.
+	//	!!!Важно: T хранит числа до 256 включительно, поэтому int.
+	int numberOfCharactersWithCodeLength[ALPHABET];
+	byte greatestCodeLength = 
+		getNumberOfCharactersWithCodeLength(numberOfCharactersWithCodeLength, codesLengths);
 
 	//	base[i] - количество нелистовых узлов дерева Хаффмана на уровне i.
 	byte base[ALPHABET+1]; // Достаточный размер greatestCodeLength + 1.
