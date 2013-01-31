@@ -1,3 +1,4 @@
+#include <string.h>
 #include <vector>
 #include <queue>
 #include <algorithm>
@@ -9,7 +10,7 @@ struct HuffmanTreeNode
 	int value;
 	int weight;
 	HuffmanTreeNode *pleft, *pright;
-	HuffmanTreeNode(): pleft(0), pright(0) {}
+	HuffmanTreeNode(): pleft(0), pright(0), value(0), weight(0) {}
 };
 
 void bytesWeightsCalculate(const byte* block, int size, int weight[]);
@@ -87,7 +88,7 @@ HuffmanTreeNode* HuffmanTreeBuild(const int weight[])
 			pq.push(node);
 		}
 	}
-	if (!pq.size()) return 0;
+	if (pq.empty()) return 0;
 	while (pq.size() > 1)
 	{
 		HuffmanTreeNode *n1 = pq.top();
@@ -111,6 +112,7 @@ HuffmanTreeNode* HuffmanTreeBuild(const int weight[])
 */
 void codesLengthsCalculate(HuffmanTreeNode* tree, byte* codesLengths)
 {
+	memset(codesLengths, 0, ALPHABET * sizeof(byte));
 	walkTree(tree, codesLengths, 0);
 }
 
@@ -163,6 +165,8 @@ void getCanonnicalCodes(const byte* codesLengths, byte canonnicalCodes[])
 	S[greatestCodeLength] = 0;
 	for (int i=greatestCodeLength-1; i>0; --i)
 		S[i] = (S[i+1] + numberOfCharactersWithCodeLength[i+1]) >> 1;
+
+	memset(canonnicalCodes, 0, ALPHABET * sizeof(byte));
 
 	for (int i=0; i<ALPHABET && codesLengths[symb[i]]; ++i)
 		canonnicalCodes[symb[i]] = S[codesLengths[symb[i]]]++;
