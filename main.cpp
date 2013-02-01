@@ -10,6 +10,7 @@ void encode(char* inFileName, char* outFileName);
 void decode(char* inFileName, char* outFileName);
 void fileNotFoundError(char* fileName);
 void fileNotOpenedError(char* fileName);
+void readError(char* fileName);
 void identicalAddressesError(char* fileName1, char* fileName2);
 void help();
 
@@ -56,7 +57,9 @@ void encode(char* inFileName, char* outFileName)
 		fileSize -= blockSize;
 
 		byte* block = new byte[blockSize];
-		fread(block, sizeof(byte), blockSize, in);
+		size_t readResult;
+		readResult = fread(block, sizeof(byte), blockSize, in);
+		if (readResult != blockSize) readError(inFileName);
 
 		byte* codesLengths = new byte[ALPHABET];
 		int encodedBlockSize;
@@ -98,15 +101,21 @@ void decode(char* inFileName, char* outFileName)
 		while(fileSize)
 		{
 			int encodedBlockSize, blockSize, lastBytePosition;
-			fread(&encodedBlockSize, sizeof encodedBlockSize, 1, in);
-			fread(&blockSize, sizeof blockSize, 1, in);
-			fread(&lastBytePosition, sizeof lastBytePosition, 1, in);
+			size_t readResult;
+			readResult = fread(&encodedBlockSize, sizeof encodedBlockSize, 1, in);
+			if (readResult != 1) readError(inFileName);
+			readResult = fread(&blockSize, sizeof blockSize, 1, in);
+			if (readResult != 1) readError(inFileName);
+			readResult = fread(&lastBytePosition, sizeof lastBytePosition, 1, in);
+			if (readResult != 1) readError(inFileName);
 
 			byte* codesLengths = new byte[ALPHABET];
-			fread(codesLengths, sizeof(byte), ALPHABET, in);
+			readResult = fread(codesLengths, sizeof(byte), ALPHABET, in);
+			if (readResult != ALPHABET) readError(inFileName);
 
 			byte* HuffmanEncodedBlock = new byte[encodedBlockSize];
-			fread(HuffmanEncodedBlock, sizeof(byte), encodedBlockSize, in);
+			readResult = fread(HuffmanEncodedBlock, sizeof(byte), encodedBlockSize, in);
+			if (readResult != encodedBlockSize) readError(inFileName);
 
 			byte* block = new byte[blockSize];
 
@@ -149,11 +158,17 @@ void fileNotFoundError(char* fileName)
 void fileNotOpenedError(char* fileName)
 {
 	fprintf(stderr, "File not opened: %s\n", fileName);
-	exit(1);
+	exit(2);
+}
+
+void readError(char* fileName)
+{
+	fprintf(stderr, "Read error from file: %s\n", fileName);
+	exit(3);
 }
 
 void identicalAddressesError(char* fileName1, char* fileName2)
 {
 	fprintf(stderr, "Addresses of files are identical: %s, %s\n", fileName1, fileName2);
-	exit(1);
+	exit(4);
 }
