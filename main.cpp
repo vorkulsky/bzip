@@ -5,9 +5,11 @@
 #include <string.h>
 #include "definitions.h"
 #include "bzip.h"
+#define defaultBlockSize 50000
 using namespace std;
 
-void encode(char* inFileName, char* outFileName);
+
+void encode(char* inFileName, char* outFileName, int blockSize);
 void decode(char* inFileName, char* outFileName);
 void fileNotFoundError(const char* fileName);
 void fileNotOpenedError(const char* fileName);
@@ -17,10 +19,18 @@ void help();
 
 int main(int argc, char *argv[])
 {
-	if (argc!=4)
+	if (argc != 4 && argc != 5)
 		help();
 	if (!strcmp(argv[1], "-e"))
-		encode(argv[2], argv[3]);
+	{
+		int blockSize = defaultBlockSize;
+		if (argc == 5)
+		{
+			blockSize = atoi(argv[4]);
+			if (blockSize <= 0) help();
+		}
+		encode(argv[2], argv[3], blockSize);
+	}
 	else if (!strcmp(argv[1], "-d"))
 		decode(argv[2], argv[3]);
 	else
@@ -28,7 +38,7 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
-void encode(char* inFileName, char* outFileName)
+void encode(char* inFileName, char* outFileName, int blockSize)
 {
 	if (!strcmp(inFileName, outFileName))
 		identicalAddressesError(inFileName, outFileName);
@@ -41,7 +51,6 @@ void encode(char* inFileName, char* outFileName)
 		fileNotOpenedError(inFileName);
 	FILE* out = fopen(outFileName, "wb");
 
-	int blockSize = 50000;
 	int d = fileSize % blockSize;
 	if (d < blockSize / 2 && fileSize > blockSize)
 		blockSize += d / (int)(fileSize / (double)blockSize) + 1;
@@ -158,12 +167,13 @@ void decode(char* inFileName, char* outFileName)
 
 void help()
 {
-	puts("usage: bzip -e infile outfile");
+	puts("usage: bzip -e infile outfile [block size]");
 	puts("       bzip -d infile outfile");
 	puts("");
 	puts("positional arguments:");
-	puts("-e     compress file");
-	puts("-d     decompress file");
+	puts("-e               compress file");
+	puts("-d               decompress file");
+	puts("[block size]     int in [1, 2147483647] (default 50000)");
 	exit(0);
 }
 
