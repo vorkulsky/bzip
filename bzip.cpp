@@ -17,8 +17,16 @@ byte* BZIPEncode(const byte* in, int inSize, int& outSize, int& lastBytePosition
 void BZIPDecode(const byte* in, int inSize, byte* out, int outSize, int lastBytePosition, const byte* codesLengths)
 {
 	byte* HuffmanDecodedBlock = new byte[outSize];
-	HuffmanDecode(in, inSize, HuffmanDecodedBlock, outSize, codesLengths);
-	MTFDecode(HuffmanDecodedBlock, outSize);
-	BWTDecode(HuffmanDecodedBlock, out, outSize, lastBytePosition);
+	try
+	{
+		HuffmanDecode(in, inSize, HuffmanDecodedBlock, outSize, codesLengths);
+		MTFDecode(HuffmanDecodedBlock, outSize);
+		BWTDecode(HuffmanDecodedBlock, out, outSize, lastBytePosition);
+	}
+	catch(...)
+	{
+		delete [] HuffmanDecodedBlock;
+		throw;
+	}
 	delete [] HuffmanDecodedBlock;
 }

@@ -23,7 +23,7 @@ void getSymb(byte symb[], const byte* codesLengths);
 byte getNumberOfCharactersWithCodeLength(int numberOfCharactersWithCodeLength[], const byte* codesLengths);
 byte* getHuffmanEncodedBlock(const byte* in, int inSize, int& outSize,
 							 const byte* codesLengths, const byte canonnicalCodes[]);
-byte getBitWithNumber(const byte* in, int index);
+byte getBitWithNumber(const byte* in, int inSize, int index);
 
 struct greaterNode
 {
@@ -285,12 +285,12 @@ void HuffmanDecode(const byte* in, int inSize, byte* out, int blockSize, const b
 	int numberOfDecodedByte = 0;
 	while (numberOfDecodedByte < blockSize)
 	{
-		byte code = getBitWithNumber(in, bitNumber++);
+		byte code = getBitWithNumber(in, inSize, bitNumber++);
 		byte length = 1;
 		while (code < base[length])
 		{
 			code <<= 1;
-			code += getBitWithNumber(in, bitNumber++);
+			code += getBitWithNumber(in, inSize, bitNumber++);
 			++length;
 		}
 		out[numberOfDecodedByte] = symb[offs[length] + code - base[length]];
@@ -301,9 +301,11 @@ void HuffmanDecode(const byte* in, int inSize, byte* out, int blockSize, const b
 /**
 *	Возвращает в байте бит с номером index из вектора байтов.
 */
-byte getBitWithNumber(const byte* in, int index)
+byte getBitWithNumber(const byte* in, int inSize, int index)
 {
 	int byteNumber = index / 8;
+	if (byteNumber > inSize)
+		throw logic_error("Unexpected end of block.");
 	byte b = in[byteNumber];
 	return b>>(7 - index % 8) & 1;
 }
