@@ -2,6 +2,7 @@
 #include <vector>
 #include <queue>
 #include <algorithm>
+#include <stdexcept>
 #include "definitions.h"
 using namespace std;
 
@@ -10,7 +11,7 @@ struct HuffmanTreeNode
 	int value;
 	int weight;
 	HuffmanTreeNode *pleft, *pright;
-	HuffmanTreeNode(): pleft(0), pright(0), value(0), weight(0) {}
+	HuffmanTreeNode(): value(0), weight(0), pleft(0), pright(0) {}
 };
 
 void bytesWeightsCalculate(const byte* block, int size, int weight[]);

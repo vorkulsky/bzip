@@ -50,6 +50,11 @@ void encode(char* inFileName, char* outFileName, int blockSize)
 	if (!in)
 		fileNotOpenedError(inFileName);
 	FILE* out = fopen(outFileName, "wb");
+	if (!out)
+	{
+		fclose(in);
+		fileNotOpenedError(outFileName);
+	}
 
 	int d = fileSize % blockSize;
 	if (d < blockSize / 2 && fileSize > blockSize)
@@ -67,7 +72,7 @@ void encode(char* inFileName, char* outFileName, int blockSize)
 			block = new byte[blockSize];
 			size_t readResult;
 			readResult = fread(block, sizeof(byte), blockSize, in);
-			if (readResult != blockSize) throw length_error(inFileName);
+			if (readResult != (size_t)blockSize) throw length_error(inFileName);
 
 			byte* codesLengths = new byte[ALPHABET];
 			int encodedBlockSize;
@@ -86,7 +91,7 @@ void encode(char* inFileName, char* outFileName, int blockSize)
 			delete [] HuffmanEncodedBlock;
 		}
 	}
-	catch(length_error err)
+	catch (const length_error& err)
 	{
 		delete [] block;
 		fprintf(stderr, "Error reading from file:%s\n", err.what());
@@ -107,11 +112,12 @@ void decode(char* inFileName, char* outFileName)
 	if (!in)
 		fileNotOpenedError(inFileName);
 	FILE* out = fopen(outFileName, "wb");
-	if (!in)
+	if (!out)
 	{
 		fclose(in);
-		fileNotOpenedError(inFileName);
+		fileNotOpenedError(outFileName);
 	}
+
 	byte *codesLengths = NULL, *HuffmanEncodedBlock = NULL, *block = NULL;
 	try
 	{
@@ -132,7 +138,7 @@ void decode(char* inFileName, char* outFileName)
 
 			HuffmanEncodedBlock = new byte[encodedBlockSize];
 			readResult = fread(HuffmanEncodedBlock, sizeof(byte), encodedBlockSize, in);
-			if (readResult != encodedBlockSize) throw length_error(inFileName);
+			if (readResult != (size_t)encodedBlockSize) throw length_error(inFileName);
 
 			block = new byte[blockSize];
 
@@ -150,11 +156,11 @@ void decode(char* inFileName, char* outFileName)
 						sizeof lastBytePosition + ALPHABET*(sizeof(byte));
 		}
 	}
-	catch(length_error err)
+	catch (const length_error& err)
 	{
 		readError(err.what());
 	}
-	catch(logic_error err)
+	catch (const logic_error& err)
 	{
 		fprintf(stderr, "Archive is broken. %s\n", err.what());
 	}
