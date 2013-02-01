@@ -89,6 +89,18 @@ HuffmanTreeNode* HuffmanTreeBuild(const int weight[])
 		}
 	}
 	if (pq.empty()) return 0;
+	if (pq.size() == 1)
+	{
+		//	Обработка исключительного случая - строится дерево Хаффмана для строки, состоящей
+		//	из одного или нескольких одинаковых символов, других символов нет.
+		HuffmanTreeNode *n1 = pq.top();
+		pq.pop();
+		HuffmanTreeNode *n0 = new HuffmanTreeNode;
+		n0->value = -1;
+		n0->weight = n1->weight;
+		n0->pleft = n1;
+		return n0;
+	}
 	while (pq.size() > 1)
 	{
 		HuffmanTreeNode *n1 = pq.top();
