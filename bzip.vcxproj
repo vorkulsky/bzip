@@ -143,16 +143,26 @@
   <ItemGroup>
     <ClCompile Include="bwt.cpp" />
     <ClCompile Include="bzip.cpp" />
+    <ClCompile Include="bziperrors.cpp" />
+    <ClCompile Include="bzipthread.cpp" />
+    <ClCompile Include="decode.cpp" />
+    <ClCompile Include="encode.cpp" />
     <ClCompile Include="huffman.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mtf.cpp" />
+    <ClCompile Include="operation.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bwt.h" />
     <ClInclude Include="bzip.h" />
+    <ClInclude Include="bziperrors.h" />
+    <ClInclude Include="bzipthread.h" />
+    <ClInclude Include="decode.h" />
     <ClInclude Include="definitions.h" />
+    <ClInclude Include="encode.h" />
     <ClInclude Include="huffman.h" />
     <ClInclude Include="mtf.h" />
+    <ClInclude Include="operation.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
