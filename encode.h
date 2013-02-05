@@ -7,16 +7,16 @@
 class Encode : public Operation
 {
 private:
-	int _blockSize;
+    int _blockSize;
 public:
-	Encode(const char* inFileName, const char* outFileName, int threadsQuantity, int blockSize):
-		Operation(inFileName, outFileName, threadsQuantity), _blockSize(blockSize) {};
-	virtual ~Encode();
+    Encode(const char* inFileName, const char* outFileName, int threadsQuantity, int blockSize):
+        Operation(inFileName, outFileName, threadsQuantity), _blockSize(blockSize) {};
+    virtual ~Encode();
 private:
-	virtual void afterOpeningFiles();
-	virtual void threadRun();
-	virtual void readData();
-	virtual void writeData();
+    virtual void afterOpeningFiles();
+    virtual void threadRun();
+    virtual void readData();
+    virtual void writeData();
 };
 
 #endif

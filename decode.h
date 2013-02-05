@@ -7,14 +7,14 @@
 class Decode : public Operation
 {
 public:
-	Decode(const char* inFileName, const char* outFileName, int threadsQuantity):
-		Operation(inFileName, outFileName, threadsQuantity) {};
-	virtual ~Decode();
+    Decode(const char* inFileName, const char* outFileName, int threadsQuantity):
+        Operation(inFileName, outFileName, threadsQuantity) {};
+    virtual ~Decode();
 private:
-	virtual void afterOpeningFiles();
-	virtual void threadRun();
-	virtual void readData();
-	virtual void writeData();
+    virtual void afterOpeningFiles();
+    virtual void threadRun();
+    virtual void readData();
+    virtual void writeData();
 };
 
 #endif
