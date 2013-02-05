@@ -12,7 +12,8 @@ using namespace std;
 // DONE - данные вычислены потоком.
 // NO - не то, ни другое.
 // ERROR - ошибка в потоке.
-enum readiness {READY, DONE, NO, ERROR};
+// END - сигнализирует потоку, что ему нужно заветшиться.
+enum readiness {READY, DONE, NO, ERROR, END};
 
 struct threadVariables
 {

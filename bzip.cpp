@@ -1,3 +1,4 @@
+#include <stddef.h>
 #include "definitions.h"
 #include "bwt.h"
 #include "huffman.h"
@@ -6,16 +7,27 @@ using namespace std;
 
 byte* BZIPEncode(const byte* in, int inSize, int& outSize, int& lastBytePosition, byte* codesLengths)
 {
+	if (!inSize) return NULL;
+	byte* out = NULL;
 	byte* BWTMTFEncodedBlock = new byte[inSize];
-	lastBytePosition = BWTEncode(in, BWTMTFEncodedBlock, inSize);
-	MTFEncode(BWTMTFEncodedBlock, inSize);
-	byte* out = HuffmanEncode(BWTMTFEncodedBlock, inSize, outSize, codesLengths);
+	try
+	{
+		lastBytePosition = BWTEncode(in, BWTMTFEncodedBlock, inSize);
+		MTFEncode(BWTMTFEncodedBlock, inSize);
+		out = HuffmanEncode(BWTMTFEncodedBlock, inSize, outSize, codesLengths);
+	}
+	catch(...)
+	{
+		delete [] BWTMTFEncodedBlock;
+		throw;
+	}
 	delete [] BWTMTFEncodedBlock;
 	return out;
 }
 
 void BZIPDecode(const byte* in, int inSize, byte* out, int outSize, int lastBytePosition, const byte* codesLengths)
 {
+	if (!inSize || !outSize) return;
 	byte* HuffmanDecodedBlock = new byte[outSize];
 	try
 	{

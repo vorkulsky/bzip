@@ -16,44 +16,49 @@ void Encode::afterOpeningFiles()
 
 void Encode::threadRun()
 {
-	readData();
 	_threads[_threadNum] = thread(BZIPEncodeThread, ref(_args[_threadNum]), ref(_vars[_threadNum]));
 }
 
 void Encode::readData()
 {
-	if (_inFileSize < _blockSize)
-		_blockSize = _inFileSize;
-	_inFileSize -= _blockSize;
+	if (!_inFileSize) {_end = true; return;}
+	try
+	{
+		if (_inFileSize < _blockSize)
+			_blockSize = _inFileSize;
 
-	if (!_inFileSize) _end = true;
+		_args[_threadNum].in = new byte[_blockSize];
+		size_t readResult;
+		readResult = fread(_args[_threadNum].in, sizeof(byte), _blockSize, _inFile);
+		if (readResult != (size_t)_blockSize) throw length_error(_inFileName);
 
-	_args[_threadNum].in = new byte[_blockSize];
-	size_t readResult;
-	readResult = fread(_args[_threadNum].in, sizeof(byte), _blockSize, _inFile);
-	if (readResult != (size_t)_blockSize) throw length_error(_inFileName);
+		_args[_threadNum].inSize = _blockSize;
 
-	_args[_threadNum].inSize = _blockSize;
+		_args[_threadNum].codesLengths = new byte[ALPHABET];
 
-	_args[_threadNum].codesLengths = new byte[ALPHABET];
+		_inFileSize -= _blockSize;
+		if (!_inFileSize) _end = true;
+	}
+	catch(...)
+	{
+		_error = true;
+		_pExc = current_exception();
+		deleteData();
+	}
 }
 
 void Encode::writeData()
 {
-	fwrite(&_args[_threadNum].outSize, sizeof _args[_threadNum].outSize, 1, _outFile);
-	fwrite(&_args[_threadNum].inSize, sizeof _args[_threadNum].inSize, 1, _outFile);
-	fwrite(&_args[_threadNum].lastBytePosition, sizeof _args[_threadNum].lastBytePosition, 1, _outFile);
-	fwrite(_args[_threadNum].codesLengths, sizeof(byte), ALPHABET, _outFile);
-	fwrite(_args[_threadNum].out, sizeof(byte), _args[_threadNum].outSize, _outFile);
+	if (_args[_threadNum].outSize)
+	{
+		fwrite(&_args[_threadNum].outSize, sizeof _args[_threadNum].outSize, 1, _outFile);
+		fwrite(&_args[_threadNum].inSize, sizeof _args[_threadNum].inSize, 1, _outFile);
+		fwrite(&_args[_threadNum].lastBytePosition, sizeof _args[_threadNum].lastBytePosition, 1, _outFile);
+		fwrite(_args[_threadNum].codesLengths, sizeof(byte), ALPHABET, _outFile);
+		fwrite(_args[_threadNum].out, sizeof(byte), _args[_threadNum].outSize, _outFile);
+	}
 
-	delete [] _args[_threadNum].in;
-	_args[_threadNum].in = NULL;
-	_args[_threadNum].inSize = 0;
-	delete [] _args[_threadNum].out;
-	_args[_threadNum].out = NULL;
-	_args[_threadNum].outSize = 0;
-	delete [] _args[_threadNum].codesLengths;
-	_args[_threadNum].codesLengths = NULL;
+	deleteData();
 }
 
 Encode::~Encode()

@@ -306,7 +306,7 @@ byte getBitWithNumber(const byte* in, int inSize, int index)
 {
 	int byteNumber = index / 8;
 	if (byteNumber > inSize)
-		throw logic_error("Unexpected end of block.");
+		throw out_of_range("The archive is broken. Unexpected end of block.");
 	byte b = in[byteNumber];
 	return b>>(7 - index % 8) & 1;
 }

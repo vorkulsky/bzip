@@ -6,8 +6,6 @@
 
 class Decode : public Operation
 {
-private:
-
 public:
 	Decode(const char* inFileName, const char* outFileName, int threadsQuantity):
 		Operation(inFileName, outFileName, threadsQuantity) {};
