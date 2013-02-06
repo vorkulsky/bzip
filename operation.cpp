@@ -86,19 +86,19 @@ void Operation::performOperation()
 void Operation::openFiles()
 {
     if (!strcmp(_inFileName, _outFileName))
-        throw invalid_argument("Addresses of infile and outfile are identical.");
+        throw invalid_argument("Addresses of inFile and outFile are identical.");
     struct stat st;
     if (stat(_inFileName, &st)!=0)
-        throw invalid_argument("File not found: infile.");
+        throw invalid_argument("File not found: inFile.");
     _inFileSize = st.st_size;
     _inFile = fopen(_inFileName, "rb");
     if (!_inFile)
-        logic_error("File not opened: infile.");
+        logic_error("File not opened: inFile.");
     _outFile = fopen(_outFileName, "wb");
     if (!_outFile)
     {
         fclose(_inFile);
-        logic_error("File not opened: outfile.");
+        logic_error("File not opened: outFile.");
     }
 }
 

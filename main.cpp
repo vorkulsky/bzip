@@ -12,20 +12,29 @@ using namespace std;
 
 void help();
 
+char* programName;
+
 int main(int argc, char *argv[])
 {
+	programName = argv[0];
     if (argc != 5 && argc != 6) help();
-    Operation *op = NULL;
+
+	int threadsQuantity = atoi(argv[4]);
+	if (threadsQuantity < 0) help();
+	if (!threadsQuantity)
+	{
+		threadsQuantity = thread::hardware_concurrency();
+		if (!threadsQuantity)
+		{
+			threadsQuantity = defaultThreadsQuantity;
+			fputs("The number of threads is not set and can not be computed.", stderr);
+			fprintf(stderr, "%i worker threads will be used.\n", defaultThreadsQuantity);
+		}
+	}
+
+	Operation *op = NULL;
     if (!strcmp(argv[1], "-e"))
     {
-        int threadsQuantity = atoi(argv[4]);
-        if (threadsQuantity < 0) help();
-        if (!threadsQuantity) threadsQuantity = thread::hardware_concurrency();
-        if (!threadsQuantity)
-        {
-            threadsQuantity = defaultThreadsQuantity;
-            puts("The number of threads is not set and can not be computed. One worker thread will be used.");
-        }
         int blockSize = defaultBlockSize;
         if (argc == 6)
         {
@@ -37,18 +46,11 @@ int main(int argc, char *argv[])
     }
     else if (!strcmp(argv[1], "-d"))
     {
-        int threadsQuantity = atoi(argv[4]);
-        if (threadsQuantity < 0) help();
-        if (!threadsQuantity) threadsQuantity = thread::hardware_concurrency();
-        if (!threadsQuantity)
-        {
-            threadsQuantity = defaultThreadsQuantity;
-            puts("The number of threads is not set and can not be computed. One worker thread will be used.");
-        }
         Decode *decodeOp = new Decode(argv[2], argv[3], threadsQuantity);
         op = decodeOp;
     }
     else help();
+
     try
     {
         // К этому моменту op всегда инициализирована, иначе программа уже завершилась по help().
@@ -60,7 +62,7 @@ int main(int argc, char *argv[])
     }
     catch (const logic_error& err)
     {
-        puts(err.what());
+		fputs(err.what(), stderr);
     }
     delete op;
     return 0;
@@ -71,14 +73,17 @@ int main(int argc, char *argv[])
 */
 void help()
 {
-    puts("usage: bzip -e infile outfile threadsQuantity [block size]");
-    puts("       bzip -d infile outfile threadsQuantity");
-    puts("");
+	printf("usage: %s -e inFile outFile threadsQuantity [blockSize]\n", programName);
+	printf("       %s -d inFile outFile threadsQuantity\n\n", programName);
     puts("positional arguments:");
-    puts("-e                   compress file");
-    puts("-d                   decompress file");
-    puts("threadsQuantity      int >= 0. 0 means that the program will try");
-	puts("                     to determine the number of logical processors.");
-    puts("[block size]         int in [1, 2147483647] (default 50000)");
+    puts("  -e                   compress file");
+    puts("  -d                   decompress file");
+	puts("  inFile               input file");
+	puts("  outFile              output file");
+    puts("  threadsQuantity      number of worker threads. If 0 the program will try");
+	puts("                       to determine number of logical processors.");
+	puts("");
+	puts("optional positional arguments:");
+    puts("  blockSize            int, >0, default 50000");
     exit(0);
 }
