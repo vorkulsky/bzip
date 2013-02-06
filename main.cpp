@@ -16,23 +16,23 @@ char* programName;
 
 int main(int argc, char *argv[])
 {
-	programName = argv[0];
+    programName = argv[0];
     if (argc != 5 && argc != 6) help();
 
-	int threadsQuantity = atoi(argv[4]);
-	if (threadsQuantity < 0) help();
-	if (!threadsQuantity)
-	{
-		threadsQuantity = thread::hardware_concurrency();
-		if (!threadsQuantity)
-		{
-			threadsQuantity = defaultThreadsQuantity;
-			fputs("The number of threads is not set and can not be computed.", stderr);
-			fprintf(stderr, "%i worker threads will be used.\n", defaultThreadsQuantity);
-		}
-	}
+    int threadsQuantity = atoi(argv[4]);
+    if (threadsQuantity < 0) help();
+    if (!threadsQuantity)
+    {
+        threadsQuantity = thread::hardware_concurrency();
+        if (!threadsQuantity)
+        {
+            threadsQuantity = defaultThreadsQuantity;
+            fputs("The number of threads is not set and can not be computed.", stderr);
+            fprintf(stderr, "%i worker threads will be used.\n", defaultThreadsQuantity);
+        }
+    }
 
-	Operation *op = NULL;
+    Operation *op = NULL;
     if (!strcmp(argv[1], "-e"))
     {
         int blockSize = defaultBlockSize;
@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
     }
     catch (const logic_error& err)
     {
-		fputs(err.what(), stderr);
+        fputs(err.what(), stderr);
     }
     delete op;
     return 0;
@@ -73,17 +73,17 @@ int main(int argc, char *argv[])
 */
 void help()
 {
-	printf("usage: %s -e inFile outFile threadsQuantity [blockSize]\n", programName);
-	printf("       %s -d inFile outFile threadsQuantity\n\n", programName);
+    printf("usage: %s -e inFile outFile threadsQuantity [blockSize]\n", programName);
+    printf("       %s -d inFile outFile threadsQuantity\n\n", programName);
     puts("positional arguments:");
     puts("  -e                   compress file");
     puts("  -d                   decompress file");
-	puts("  inFile               input file");
-	puts("  outFile              output file");
+    puts("  inFile               input file");
+    puts("  outFile              output file");
     puts("  threadsQuantity      number of worker threads. If 0 the program will try");
-	puts("                       to determine number of logical processors.");
-	puts("");
-	puts("optional positional arguments:");
+    puts("                       to determine number of logical processors.");
+    puts("");
+    puts("optional positional arguments:");
     puts("  blockSize            int, >0, default 50000");
     exit(0);
 }
