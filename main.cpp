@@ -2,10 +2,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdexcept>
+#include <thread>
 #include "operation.h"
 #include "encode.h"
 #include "decode.h"
 #define defaultBlockSize 50000
+#define defaultThreadsQuantity 1
 using namespace std;
 
 void help();
@@ -17,7 +19,13 @@ int main(int argc, char *argv[])
     if (!strcmp(argv[1], "-e"))
     {
         int threadsQuantity = atoi(argv[4]);
-        if (threadsQuantity <= 0) help();
+        if (threadsQuantity < 0) help();
+        if (!threadsQuantity) threadsQuantity = thread::hardware_concurrency();
+        if (!threadsQuantity)
+        {
+            threadsQuantity = defaultThreadsQuantity;
+            puts("The number of threads is not set and can not be computed. One worker thread will be used.");
+        }
         int blockSize = defaultBlockSize;
         if (argc == 6)
         {
@@ -30,7 +38,13 @@ int main(int argc, char *argv[])
     else if (!strcmp(argv[1], "-d"))
     {
         int threadsQuantity = atoi(argv[4]);
-        if (threadsQuantity <= 0) help();
+        if (threadsQuantity < 0) help();
+        if (!threadsQuantity) threadsQuantity = thread::hardware_concurrency();
+        if (!threadsQuantity)
+        {
+            threadsQuantity = defaultThreadsQuantity;
+            puts("The number of threads is not set and can not be computed. One worker thread will be used.");
+        }
         Decode *decodeOp = new Decode(argv[2], argv[3], threadsQuantity);
         op = decodeOp;
     }
@@ -63,7 +77,8 @@ void help()
     puts("positional arguments:");
     puts("-e                   compress file");
     puts("-d                   decompress file");
-    puts("threadsQuantity      int > 0");
+    puts("threadsQuantity      int >= 0. 0 means that the program will try");
+	puts("                     to determine the number of logical processors.");
     puts("[block size]         int in [1, 2147483647] (default 50000)");
     exit(0);
 }
