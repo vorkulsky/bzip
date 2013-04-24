@@ -73,8 +73,8 @@ int main(int argc, char *argv[])
 */
 void help()
 {
-    printf("usage: %s -e inFile outFile threadsQuantity [blockSize]\n", programName);
-    printf("       %s -d inFile outFile threadsQuantity\n\n", programName);
+    printf("usage: bzip -e inFile outFile threadsQuantity [blockSize]\n");
+    printf("       bzip -d inFile outFile threadsQuantity\n\n");
     puts("positional arguments:");
     puts("  -e                   compress file");
     puts("  -d                   decompress file");

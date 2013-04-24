@@ -1,0 +1,15 @@
+Multithreaded cross-platform archiver bzip.
+
+usage: bzip -e inFile outFile threadsQuantity [blockSize]
+       bzip -d inFile outFile threadsQuantity
+
+positional arguments:
+  -e                   compress file
+  -d                   decompress file
+  inFile               input file
+  outFile              output file
+  threadsQuantity      number of worker threads. If 0 the program will try
+                       to determine number of logical processors.
+
+optional positional arguments:
+  blockSize            int, >0, default 50000
